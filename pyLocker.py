@@ -29,8 +29,31 @@ keyFile = None
 osname = platform.system()
 lockCommandFile = Path(os.path.join(home, '.locCom'))
 lockCommand = None
+strongAccept = Path(os.path.join(home, '.strongAccept'))
 
+if(args.strong):
+    if(os.path.exists(strongAccept)):
+        sah = open(strongAccept, 'r')
+        if(sah.read() != 'True'):
+            print('!!!WARNING!!!')
+            print('using strong locking can be dangerous')
+            print('you may permanently lock yourself out of your machine')
+            print('please ensure you know what you are doing')
+            if(osname.startswith('Linux')):
+                print('please ensure you have set your machine to automount your usb key')
+            print('')
+            getting = True
+            while getting:
+                proceed = input('type "lock" to proceed')
+                if(proceed != 'lock' or proceed != '"lock"'):
+                    sys.exit()
+                else:
+                    sah = open(strongAccept, 'w')
+                    sah.write('True')
+                    sah.close()
+        proceed = input('Press enter to proceed with strong locking enabled or ctrl+c to exit')
 
+    
 def init():
     global home
     global keyFile
