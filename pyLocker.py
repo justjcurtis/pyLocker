@@ -143,7 +143,7 @@ def lockCheck():
                     kh = open(keyFile, 'r')
                     secure = kh.read() == str(UUID)
                     if(secure):
-                print(f'unlocked @{datetime.datetime.now()}')
+                        print(f'unlocked @{datetime.datetime.now()}')
                     elif(args.strong):
                         time.sleep(1)
                         lock()
