@@ -1,5 +1,6 @@
 import argparse
 import ctypes
+import datetime
 import os
 from pathlib import Path
 import platform
@@ -119,6 +120,7 @@ def lock():
 
 
 def lockCheck():
+    print('System is now secured by usb')
     global keyFile
     try:
         kh = open(keyFile, 'r')
@@ -127,7 +129,7 @@ def lockCheck():
         print(ex)
         secure = False
         lock()
-        print('lock')
+        print(f'locked @{datetime.datetime.now()}')
 
     while True:
         try:
@@ -135,13 +137,13 @@ def lockCheck():
                 kh.close()
                 secure = False
                 lock()
-                print('lock')
+                print(f'locked @{datetime.datetime.now()}')
             elif not(secure):
                 if(os.path.exists(keyFile)):
                     kh = open(keyFile, 'r')
                     secure = kh.read() == str(UUID)
                     if(secure):
-                        print('unlock')
+                print(f'unlocked @{datetime.datetime.now()}')
                     elif(args.strong):
                         time.sleep(1)
                         lock()
@@ -152,7 +154,7 @@ def lockCheck():
             print(ex)
             secure = False
             lock()
-            print('lock')
+            print(f'locked @{datetime.datetime.now()}')
 
 
 init()
