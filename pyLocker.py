@@ -62,14 +62,11 @@ def init():
 
 def lock():
     if(osname == 'Windows'):
-        pyautogui.keydown('winleft')
-        pyautogui.press('l')
+        pyautogui.hotkey('winleft', 'l')
     elif(osname.startswith('Linux')):
         os.system(lockCommand)
     else:
-        pyautogui.keydown('ctrlleft')
-        pyautogui.keydown('command')
-        pyautogui.press('q')
+        pyautogui.hotkey('ctrlleft', 'command', 'q')
 
 
 
