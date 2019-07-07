@@ -137,13 +137,13 @@ def lockCheck():
                 kh.close()
                 secure = False
                 lock()
-                print(f'locked @{datetime.datetime.now()}')
+                print(f'locked @ {datetime.datetime.now()}')
             elif not(secure):
                 if(os.path.exists(keyFile)):
                     kh = open(keyFile, 'r')
                     secure = kh.read() == str(UUID)
                     if(secure):
-                        print(f'unlocked @{datetime.datetime.now()}')
+                        print(f'unlocked @ {datetime.datetime.now()}')
                     elif(args.strong):
                         time.sleep(1)
                         lock()
@@ -154,7 +154,7 @@ def lockCheck():
             print(ex)
             secure = False
             lock()
-            print(f'locked @{datetime.datetime.now()}')
+            print(f'locked @ {datetime.datetime.now()}')
 
 
 init()
