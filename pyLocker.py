@@ -3,6 +3,7 @@ from pathlib import Path
 import platform
 import uuid
 import pyautogui
+import ctypes
 
 home = str(Path.home())
 UUID = uuid.uuid4()
@@ -26,23 +27,34 @@ def init():
     global UUID
     if(osname.startswith('Linux')):
         if not(os.path.exists(lockCommandFile)):
+            print("leave this blank to use winleft + L hotkey to lock screen")
             lockCommand = input('Please enter command to lock screen : ')
             lockCommandFileHandle = open(lockCommandFile, 'w')
-            lockCommandFileHandle.write(lockCommand)
+            if(lockCommand == ''):
+                lockCommandFileHandle.write('hotkey')
+            else:
+                lockCommandFileHandle.write(lockCommand)
         else:
             lockCommandFileHandle = open(lockCommandFile, 'r')
             lockCommand = lockCommandFileHandle.read()
 
     if not(os.path.exists(lockFile)):
-        lockHandle = open(lockFile, 'w')
-        lockHandle.write(str(UUID))
         print('You will need to enter the path to your usb stick to be used as a physical key')
         keyLoc = input('Path usb root : ')
         keyFile = Path(os.path.join(keyLoc, '.pyLock'))
-        keyHandle = open(keyFile, 'w')
-        keyHandle.write(str(UUID))
-        keyLocHandle = open(keyLocCache, 'w')
-        keyLocHandle.write(str(keyFile))
+        if(os.path.exists(keyFile)):
+            keyHandle = open(keyFile, 'r')
+            UUID = keyHandle.read()
+            keyLocHandle = open(keyLocCache, 'w')
+            keyLocHandle.write(str(keyFile))
+        else:
+            keyHandle = open(keyFile, 'w')
+            keyHandle.write(str(UUID))
+            keyLocHandle = open(keyLocCache, 'w')
+            keyLocHandle.write(str(keyFile))
+
+        lockHandle = open(lockFile, 'w')
+        lockHandle.write(str(UUID))
     else:
         lockHandle = open(lockFile, 'r')
         UUID = lockHandle.read()
@@ -62,9 +74,12 @@ def init():
 
 def lock():
     if(osname == 'Windows'):
-        pyautogui.hotkey('winleft', 'l')
+        ctypes.windll.user32.LockWorkStation()
     elif(osname.startswith('Linux')):
-        os.system(lockCommand)
+        if(lockCommand == 'hotkey'):
+            pyautogui.hotkey('winleft', 'l')
+        else:
+            os.system(lockCommand)
     else:
         pyautogui.hotkey('ctrlleft', 'command', 'q')
 
