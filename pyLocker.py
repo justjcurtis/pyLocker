@@ -17,8 +17,9 @@ parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
 parser.add_argument('-i', "--init", action='store_true',
     help='add -i to clear old keys from system and use key from usb if one exists')
 parser.add_argument('-s', "--strong", action='store_true',
-    help='add -s to disable unlocking without key')
+    help='add -s to disable unlocking without key (currently disabled due to issues)')
 args = parser.parse_args()
+args.stong = False
 
 home = str(Path.home())
 UUID = uuid.uuid4()
@@ -36,6 +37,7 @@ if(args.strong):
         sah = open(strongAccept, 'r')
         if(sah.read() != 'True'):
             print('!!!WARNING!!!')
+            print('strong locking is experimental at this time')
             print('using strong locking can be dangerous')
             print('you may permanently lock yourself out of your machine')
             print('please ensure you know what you are doing')
