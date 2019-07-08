@@ -18,6 +18,8 @@ parser.add_argument('-i', "--init", action='store_true',
     help='add -i to clear old keys from system and use key from usb if one exists')
 parser.add_argument('-a', "--add_key", action='store_true',
     help='add -a to add another key using lock files already on machine')
+parser.add_argument('-r', "--remove_key", action='store_true',
+    help='add -r to remove a key')
 parser.add_argument('-lc', "--lock_command", action='store_true',
     help='add -lc to set lock command (linux only)')
 args = parser.parse_args()
@@ -72,6 +74,28 @@ def clearOldData():
     sys.exit()
 
 
+def keysPresent(keyFiles):
+    results = []
+    for keyFile in keyFiles:
+        if(os.path.exists(keyFile)):
+            results.append(keyFile)
+    return results
+
+
+def gotSecureKey():
+    try:
+        keyFiles = keysPresent(lockSettings['keyFile'].split(','))
+        for keyFile in keyFiles:
+            kh = open(keyFile, 'r')
+            secure = kh.read() == lockSettings['uuid']
+            if(secure):
+                return True
+        return False
+    except Exception as ex:
+        print(ex)
+        return False
+
+
 def init():
     global lockFile
     global lockSettings
@@ -113,6 +137,30 @@ def init():
 
             gotKey = os.path.exists(newKeyFile)
         lockSettings['keyFile'] += f',{newKeyFile}'
+        saveSettings(lockSettings)
+        sys.exit()
+    elif(args.remove_key):
+        keyFiles = lockSettings['keyFile'].split(',')
+        if(len(keyFiles)<2):
+            print('You only have 1 key')
+            print('You cannot have 0 keys')
+            print('if you want to remove everything then use pyLocker with -i argument')
+        else:
+            proceed = input('remove all keys except ones currently inserted into machine (yes/no) : ')
+            if(proceed == 'yes'):
+                presentKeys = keysPresent(keyFiles)
+                if(len(keyFiles)==len(presentKeys)):
+                    print('You have insterted all keys associated with this machine')
+                    print('You cannot have 0 keys, and therfore cannot remove them all')
+                    print('if you want to remove everything then use pyLocker with -i argument')
+                elif(len(presentKeys) < 1):
+                    print('you must insert at least 1 valid key into this machine to remove all others')
+                else:
+                    lockSettings['keyFile'] = ','.join(presentKeys)
+                    print(f'{len(keyFiles) - len(presentKeys)} removed')
+                    print(f'{len(presentKeys)} remain registered')
+        saveSettings(lockSettings)
+        sys.exit()
 
 
 def lock():
@@ -125,28 +173,6 @@ def lock():
             os.system(lockSettings['lockCommand'])
     else:
         pyautogui.hotkey('ctrlleft', 'command', 'q')
-
-
-def keysPresent(keyFiles):
-    results = []
-    for keyFile in keyFiles:
-        if(os.path.exists(keyFile)):
-            results.append(keyFile)
-    return results
-
-
-def gotSecureKey():
-    try:
-        keyFiles = keysPresent(lockSettings['keyFile'].split(','))
-        for keyFile in keyFiles:
-            kh = open(keyFile, 'r')
-            secure = kh.read() == lockSettings['uuid']
-            if(secure):
-                return True
-        return False
-    except Exception as ex:
-        print(ex)
-        return False
 
 
 def lockCheck():
