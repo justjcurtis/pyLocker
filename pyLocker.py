@@ -18,6 +18,8 @@ parser.add_argument('-i', "--init", action='store_true',
     help='add -i to clear old keys from system and use key from usb if one exists')
 parser.add_argument('-a', "--add_key", action='store_true',
     help='add -a to add another key using lock files already on machine')
+parser.add_argument('-lc', "--lock_command", action='store_true',
+    help='add -lc to set lock command (linux only)')
 args = parser.parse_args()
 args.stong = False
 
@@ -30,7 +32,6 @@ defaultLockSettings = {
     'uuid': str(uuid.uuid4()),
     'keyFile': None,
     'lockCommand': None,
-    'strongAccept': False
 }
 
 
@@ -48,32 +49,9 @@ def saveSettings(settings):
     lockFileHandle.write(json.dumps(settings))
 
 
-def strongAcceptWarning():
+def setLockCommand(force):
     global lockSettings
-    if(args.strong):
-        if(not lockSettings['strongAccept']):
-            print('!!!WARNING!!!')
-            print('strong locking is experimental at this time')
-            print('using strong locking can be dangerous')
-            print('you may permanently lock yourself out of your machine')
-            print('please ensure you know what you are doing')
-            if(osname.startswith('Linux')):
-                print('please ensure you have set your machine to automount your usb key')
-            print('')
-            getting = True
-            while getting:
-                proceed = input('type "lock" to proceed')
-                if(proceed != 'lock' or proceed != '"lock"'):
-                    sys.exit()
-                else:
-                    lockSettings['strongAccept'] = True
-                    saveSettings(lockSettings)
-            proceed = input('Press enter to proceed with strong locking enabled or ctrl+c to exit')
-
-
-def setLockCommand():
-    global lockSettings
-    if(lockSettings['lockCommand'] is None):
+    if(lockSettings['lockCommand'] is None or force):
         print("Leave this blank to use winleft + L hotkey to lock screen")
         lockCommand = input('Please enter command to lock screen : ')
         if(lockCommand == ''):
@@ -82,6 +60,8 @@ def setLockCommand():
             lockSettings['lockCommand'] = lockCommand
 
     saveSettings(lockSettings)
+    if(force):
+        sys.exit()
 
 
 def clearOldData():
@@ -103,7 +83,7 @@ def init():
     saveSettings(lockSettings)
 
     if(osname.startswith('Linux')):
-        setLockCommand()
+        setLockCommand(args.lock_command)
 
     if (lockSettings['keyFile'] is None):
         print('Starting initial setup')
