@@ -11,7 +11,7 @@ import pyautogui
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, add_help=False)
 parser.add_argument('-v', '--version', action='version',
-                    version='%(prog)s 1.0', help="Show program's version number and exit.")
+                    version='%(prog)s 2.6', help="Show program's version number and exit.")
 parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
                     help='** = required')
 parser.add_argument('-i', "--init", action='store_true',
