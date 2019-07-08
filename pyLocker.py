@@ -16,6 +16,8 @@ parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
                     help='** = required')
 parser.add_argument('-i', "--init", action='store_true',
     help='add -i to clear old keys from system and use key from usb if one exists')
+parser.add_argument('-a', "--add_key", action='store_true',
+    help='add -a to add another key using lock files already on machine')
 args = parser.parse_args()
 args.stong = False
 
@@ -121,6 +123,17 @@ def init():
 
         saveSettings(lockSettings)
 
+    elif(args.add_key):
+        gotKey = False
+        while not gotKey:
+            keyRoot = input('Path usb root : ')
+            newKeyFile = os.path.join(keyRoot, '.pyLock')
+            keyHandle = open(newKeyFile, 'w')
+            keyHandle.write(lockSettings['uuid'])
+
+            gotKey = os.path.exists(newKeyFile)
+        lockSettings['keyFile'] += f',{newKeyFile}'
+
 
 def lock():
     if(osname == 'Windows'):
@@ -134,31 +147,44 @@ def lock():
         pyautogui.hotkey('ctrlleft', 'command', 'q')
 
 
+def keysPresent(keyFiles):
+    results = []
+    for keyFile in keyFiles:
+        if(os.path.exists(keyFile)):
+            results.append(keyFile)
+    return results
+
+
+def gotSecureKey():
+    try:
+        keyFiles = keysPresent(lockSettings['keyFile'].split(','))
+        for keyFile in keyFiles:
+            kh = open(keyFile, 'r')
+            secure = kh.read() == lockSettings['uuid']
+            if(secure):
+                return True
+        return False
+    except Exception as ex:
+        print(ex)
+        return False
+
+
 def lockCheck():
     if(lockSettings['keyFile'] is not None):
         print('System is now secured by usb')
-        try:
-            kh = open(lockSettings['keyFile'], 'r')
-            secure = kh.read() == lockSettings['uuid']
-        except Exception as ex:
-            print(ex)
-            secure = False
+        secure = gotSecureKey()
+        if(not secure):
             lock()
-            print(f'locked @{datetime.datetime.now()}')
-
         while True:
             try:
-                if(secure and not os.path.exists(lockSettings['keyFile'])):
-                    kh.close()
+                if(secure and not gotSecureKey()):
                     secure = False
                     lock()
                     print(f'locked @ {datetime.datetime.now()}')
                 elif not(secure):
-                    if(os.path.exists(lockSettings['keyFile'])):
-                        kh = open(lockSettings['keyFile'], 'r')
-                        secure = kh.read() == lockSettings['uuid']
-                        if(secure):
-                            print(f'unlocked @ {datetime.datetime.now()}')
+                    secure = gotSecureKey()
+                    if(secure):
+                        print(f'unlocked @ {datetime.datetime.now()}')
             except Exception as ex:
                 print(ex)
                 secure = False
